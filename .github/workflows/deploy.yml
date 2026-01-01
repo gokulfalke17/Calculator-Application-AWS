@@ -2,28 +2,24 @@ name: CI/CD Spring Boot Docker to AWS EC2
 
 on:
   push:
-    branches: [ main ]  # Run on push to main branch
+    branches: [ main ]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout your repo
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
 
-      # Step 3: Build Spring Boot app
       - name: Build Spring Boot app
         run: mvn clean package -DskipTests
 
-      # Step 4: Configure AWS CLI
       - name: Configure AWS CLI
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -31,26 +27,21 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # Step 5: Login to AWS ECR
       - name: Login to ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
           docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
 
-      # Step 6: Build Docker image
       - name: Build Docker image
         run: docker build -t calculator-app:latest .
 
-      # Step 7: Tag Docker image for ECR
       - name: Tag Docker image
         run: |
           docker tag calculator-app:latest ${{ secrets.ECR_REPOSITORY }}:latest
 
-      # Step 8: Push Docker image to ECR
       - name: Push Docker image
         run: docker push ${{ secrets.ECR_REPOSITORY }}:latest
 
-      # Step 9: Deploy Docker container on EC2
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -59,12 +50,9 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            # Pull latest Docker image
             docker pull ${{ secrets.ECR_REPOSITORY }}:latest
 
-            # Stop & remove old container if exists
             docker stop calculator-app || true
             docker rm calculator-app || true
 
-            # Run new container
             docker run -d --name calculator-app -p 8080:8080 ${{ secrets.ECR_REPOSITORY }}:latest
