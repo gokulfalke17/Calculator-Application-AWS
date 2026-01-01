@@ -36,9 +36,9 @@ jobs:
         run: |
           docker build -t calculator-app:latest .
 
-      - name: Tag Docker image
-        run: |
-          docker tag calculator-app:latest ${{ secrets.ECR_REPOSITORY }}:latest
+#      - name: Tag Docker image
+#        run: |
+#          docker tag calculator-app:latest ${{ secrets.ECR_REPOSITORY }}:latest
 
       - name: Push Docker image to ECR
         run: |
