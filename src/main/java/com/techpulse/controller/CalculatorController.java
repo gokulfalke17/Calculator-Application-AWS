@@ -11,6 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/calc")
 public class CalculatorController {
 
+    @GetMapping("/test")
+    public String test() {
+        return "Calculator Service is up and running..!";
+    }
+
     @GetMapping("/add")
     public ResponseEntity<?> add(@RequestParam double a, @RequestParam double b) {
         return new ResponseEntity<>("Addition is :: "+ (a + b), HttpStatus.OK);
